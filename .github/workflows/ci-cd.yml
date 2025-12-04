@@ -1,0 +1,88 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Job 1: Validate and test static files
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate HTML
+        run: |
+          echo "Validating HTML files..."
+          if [ -f "index.html" ]; then
+            echo "✓ index.html found"
+          else
+            echo "✗ index.html not found"
+            exit 1
+          fi
+
+      - name: Validate CSS
+        run: |
+          echo "Validating CSS files..."
+          if [ -f "styles.css" ]; then
+            echo "✓ styles.css found"
+          else
+            echo "✗ styles.css not found"
+            exit 1
+          fi
+
+      - name: Validate JavaScript
+        run: |
+          echo "Validating JavaScript files..."
+          if [ -f "script.js" ]; then
+            echo "✓ script.js found"
+          else
+            echo "✗ script.js not found"
+            exit 1
+          fi
+
+      - name: Check file structure
+        run: |
+          echo "Checking project structure..."
+          ls -la
+          echo "All files validated successfully!"
+
+  # Job 2: Deploy to GitHub Pages
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Deployment successful
+        run: |
+          echo "🚀 Website deployed successfully!"
+          echo "🌐 URL: ${{ steps.deployment.outputs.page_url }}"

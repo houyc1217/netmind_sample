@@ -1,0 +1,27 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Temporary files
+.tmp/
+temp/
+
+# Data and vector files (from previous project setup)
+data/
+vectors/
+
+# Docker files (keeping main files but ignoring local docker data)
+.dockerignore
+Dockerfile
