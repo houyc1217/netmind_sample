@@ -2,18 +2,23 @@
 const hamburger = document.getElementById('hamburger');
 const navMenu = document.getElementById('navMenu');
 
-hamburger.addEventListener('click', () => {
-    navMenu.classList.toggle('active');
-    hamburger.classList.toggle('active');
-});
-
-// Close menu when clicking on a nav link
-document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', () => {
-        navMenu.classList.remove('active');
-        hamburger.classList.remove('active');
+if (hamburger && navMenu) {
+    hamburger.addEventListener('click', () => {
+        const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
+        hamburger.setAttribute('aria-expanded', !isExpanded);
+        navMenu.classList.toggle('active');
+        hamburger.classList.toggle('active');
     });
-});
+
+    // Close menu when clicking on a nav link
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            navMenu.classList.remove('active');
+            hamburger.classList.remove('active');
+            hamburger.setAttribute('aria-expanded', 'false');
+        });
+    });
+}
 
 // Smooth Scrolling
 function scrollToSection(sectionId) {
@@ -31,6 +36,12 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         scrollToSection(targetId);
     });
 });
+
+// CTA Button click handler
+const ctaButton = document.querySelector('.cta-button');
+if (ctaButton) {
+    ctaButton.addEventListener('click', () => scrollToSection('contact'));
+}
 
 // Animated Counter for Statistics
 function animateCounter(element) {
@@ -72,13 +83,7 @@ const observer = new IntersectionObserver((entries) => {
             const serviceCards = entry.target.querySelectorAll('.service-card');
             serviceCards.forEach((card, index) => {
                 setTimeout(() => {
-                    card.style.opacity = '0';
-                    card.style.transform = 'translateY(30px)';
-                    setTimeout(() => {
-                        card.style.transition = 'all 0.6s ease';
-                        card.style.opacity = '1';
-                        card.style.transform = 'translateY(0)';
-                    }, 50);
+                    card.classList.add('visible');
                 }, index * 100);
             });
         }
@@ -92,54 +97,60 @@ const servicesSection = document.querySelector('.services');
 if (aboutSection) observer.observe(aboutSection);
 if (servicesSection) observer.observe(servicesSection);
 
-// Navbar scroll effect
-let lastScroll = 0;
-const navbar = document.querySelector('.navbar');
+// Throttle function for performance optimization
+function throttle(func, limit) {
+    let inThrottle;
+    return function(...args) {
+        if (!inThrottle) {
+            func.apply(this, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
+    };
+}
 
-window.addEventListener('scroll', () => {
+// Cache DOM elements for scroll effects
+const navbar = document.querySelector('.navbar');
+const hero = document.querySelector('.hero');
+
+// Consolidated scroll handler with throttling
+const handleScroll = throttle(() => {
     const currentScroll = window.pageYOffset;
 
-    if (currentScroll <= 0) {
-        navbar.style.boxShadow = 'var(--shadow)';
-    } else {
-        navbar.style.boxShadow = 'var(--shadow-lg)';
+    // Navbar shadow effect
+    if (navbar) {
+        navbar.style.boxShadow = currentScroll <= 0 ? 'var(--shadow)' : 'var(--shadow-lg)';
     }
 
-    lastScroll = currentScroll;
-});
+    // Parallax effect for hero section
+    if (hero) {
+        hero.style.transform = `translateY(${currentScroll * 0.5}px)`;
+    }
+}, 16);
+
+window.addEventListener('scroll', handleScroll, { passive: true });
 
 // Contact Form Handling
 const contactForm = document.getElementById('contactForm');
 
-contactForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+if (contactForm) {
+    contactForm.addEventListener('submit', (e) => {
+        e.preventDefault();
 
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const message = document.getElementById('message').value;
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const message = document.getElementById('message').value;
 
-    // Here you would typically send the form data to a server
-    // For this demo, we'll just show a success message
-    alert(`Thank you, ${name}! Your message has been received:\n\n"${message}"\n\nWe'll get back to you at ${email} soon.`);
+        // Here you would typically send the form data to a server
+        // For this demo, we'll just show a success message
+        alert(`Thank you, ${name}! Your message has been received:\n\n"${message}"\n\nWe'll get back to you at ${email} soon.`);
 
-    // Reset form
-    contactForm.reset();
-});
+        // Reset form
+        contactForm.reset();
+    });
+}
 
 // Add fade-in animation on page load
 window.addEventListener('load', () => {
-    document.body.style.opacity = '0';
-    setTimeout(() => {
-        document.body.style.transition = 'opacity 0.5s ease';
-        document.body.style.opacity = '1';
-    }, 100);
-});
-
-// Parallax effect for hero section
-window.addEventListener('scroll', () => {
-    const hero = document.querySelector('.hero');
-    const scrolled = window.pageYOffset;
-    if (hero) {
-        hero.style.transform = `translateY(${scrolled * 0.5}px)`;
-    }
+    document.body.classList.add('loaded');
 });
